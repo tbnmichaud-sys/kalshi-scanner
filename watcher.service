@@ -1,0 +1,17 @@
+[Unit]
+Description=Kalshi rain floor-lock watcher (notify-only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documents/kalshi-scanner
+ExecStart=/usr/bin/python3 %h/Documents/kalshi-scanner/watcher.py --fast 300
+# Drop summer-dry cities if you like: append e.g. --skip KXRAINLAXM KXRAINSFOM KXRAINSEAM
+Restart=on-failure
+RestartSec=30
+# Phone/chat push (optional): uncomment and set an ntfy.sh topic or Slack webhook.
+# Environment=KALSHI_NOTIFY_WEBHOOK=https://ntfy.sh/your-private-topic-name
+
+[Install]
+WantedBy=default.target
