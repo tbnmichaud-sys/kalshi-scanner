@@ -28,10 +28,13 @@ jobs:
           KALSHI_NOTIFY_WEBHOOK: ${{ secrets.KALSHI_NOTIFY_WEBHOOK }}
         run: python3 watcher.py --once   # ubuntu-latest ships python3 + tzdata
 
-      - name: Persist state (journal, dedup, prev snapshot)
+      - name: Settle journal + refresh P&L report
+        run: python3 settle.py           # fills result/pnl once Kalshi reports
+
+      - name: Persist state (journal, dedup, prev snapshot, P&L)
         run: |
           git config user.name  "watcher-bot"
           git config user.email "watcher-bot@users.noreply.github.com"
-          git add trades.csv watcher_state.json watcher_prev.json || true
+          git add trades.csv watcher_state.json watcher_prev.json PNL.md || true
           git commit -m "watcher state $(date -u +%FT%TZ)" || { echo "no changes"; exit 0; }
           git push

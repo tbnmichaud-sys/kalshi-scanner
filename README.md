@@ -148,10 +148,18 @@ has a phone app) or a Slack incoming-webhook URL.
 
 Auto-journal: every fired signal (all tiers) is appended to `trades.csv` as a
 paper entry (filled at the alert ask), tagged `AUTO Tier<n>`, deduped so each
-fires once. `log_bet.py --show` lists them; settle at month-end with
-`log_bet.py --settle <id> --result yes|no`. Disable with `--no-journal`. This is
+fires once. `log_bet.py --show` lists them; disable with `--no-journal`. This is
 what makes validation automatic — a season of auto-logged signals, settled, tells
 you whether any tier's entry prices actually beat their outcomes.
+
+Settlement is automatic too: `settle.py` runs after every polling pass (and can
+be run by hand, `--dry-run` to preview). It asks Kalshi for each journaled
+market's official `result` and, once the exchange reports (a few days after
+month-end), fills `result`/`pnl_c` and rewrites **`PNL.md`** — a per-tier
+scorecard (signals, hit rate vs the rate the entry prices implied, P&L pre/post
+estimated fees) committed to the repo, so the season-long verdict on each tier
+is readable on GitHub without cloning. Manual `log_bet.py --settle` still works
+for hand-logged rows on markets settle.py can't match.
 
 Two alert tiers (iron tradeoff — a signal can be certain, frequent, or
 high-payout; pick two):
