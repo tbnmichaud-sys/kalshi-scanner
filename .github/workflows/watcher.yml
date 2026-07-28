@@ -1,49 +1,48 @@
 name: kalshi-rain-watcher
 
-# GitHub's cron is best-effort and, in practice, delivers high-frequency
-# schedules HOURS apart on low-activity repos. So instead of one poll per run,
-# each run loops for ~50 min of true 5-minute cycles (poll -> settle -> commit
-# state), and the concurrency group makes a queued schedule event start the
-# next stretch as soon as the current one ends. Tier 4 (cycle-over-cycle diff)
-# and the dedup/journal survive across cycles and runs via the committed state
-# files; within a run they just persist on the runner's disk.
+# One polling pass per run. Tier 4 (cycle-over-cycle diff) and the dedup/
+# journal all work across runs because we commit the state files back, so each
+# run loads the previous run's snapshot. "Previous cycle" = last run.
+#
+# Cadence: GitHub's own cron is best-effort and often delivers */5 schedules
+# hours apart, so it's only the fallback. The real 5-minute clock is an
+# external scheduler (e.g. cron-job.org) POSTing to the workflow_dispatch API:
+#   POST /repos/tbnmichaud-sys/kalshi-scanner/actions/workflows/watcher.yml/dispatches
+#   Authorization: Bearer <fine-grained PAT with Actions read+write>
+#   body: {"ref":"main"}
 on:
   schedule:
-    - cron: '*/15 * * * *'    # fires often so one event is always queued when
-                              # a stretch ends; actual delivery is best-effort.
-  workflow_dispatch: {}       # manual "Run workflow" button
+    - cron: '*/5 * * * *'     # fallback; GitHub delivers this sporadically
+  workflow_dispatch: {}       # external cron + manual "Run workflow" button
 
 permissions:
   contents: write             # needed to commit state files back
 
-concurrency:                  # never overlap runs; one pending run queues up
+concurrency:                  # never overlap runs (a slow run blocks the next)
   group: watcher
   cancel-in-progress: false
 
 jobs:
   poll:
     runs-on: ubuntu-latest
-    timeout-minutes: 58
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
-      - name: Poll every 5 min for ~50 min
+      - name: One polling pass
         env:
           # set in repo Settings -> Secrets and variables -> Actions
           KALSHI_NOTIFY_WEBHOOK: ${{ secrets.KALSHI_NOTIFY_WEBHOOK }}
+        run: python3 watcher.py --once   # ubuntu-latest ships python3 + tzdata
+
+      - name: Settle journal + refresh P&L report
+        run: python3 settle.py           # fills result/pnl once Kalshi reports
+
+      - name: Persist state (journal, dedup, prev snapshot, P&L)
         run: |
           git config user.name  "watcher-bot"
           git config user.email "watcher-bot@users.noreply.github.com"
-          END=$((SECONDS + 3000))   # ~50 min; next queued run takes over after
-          while true; do
-            python3 watcher.py --once       # ubuntu-latest ships python3+tzdata
-            python3 settle.py               # fills result/pnl once Kalshi reports
-            if ! git diff --quiet -- trades.csv watcher_state.json watcher_prev.json PNL.md; then
-              git add trades.csv watcher_state.json watcher_prev.json PNL.md
-              git commit -q -m "watcher state $(date -u +%FT%TZ)"
-              git pull --rebase -q || true  # tolerate a manual push mid-run
-              git push -q || echo "push failed; will retry with next cycle's commit"
-            fi
-            [ $SECONDS -ge $END ] && break
-            sleep 300
-          done
+          git add trades.csv watcher_state.json watcher_prev.json PNL.md || true
+          git commit -m "watcher state $(date -u +%FT%TZ)" || { echo "no changes"; exit 0; }
+          git pull --rebase -q || true
+          git push
