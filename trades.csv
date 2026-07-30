@@ -5,3 +5,4 @@ id,ts_local,series,event,station,threshold,side,price_paid_c,count,entry_bid,ent
 4,2026-07-28 16:25,KXRAINSTPM,KXRAINSTPM-26JUL,,9.0,yes,36,1,,36,7.40,1.60,AUTO Tier3 model 46% vs 36c (+10c),,
 5,2026-07-28 16:25,KXRAINSTPM,KXRAINSTPM-26JUL,,10.0,yes,8,1,,8,7.40,2.60,AUTO Tier3 model 25% vs 8c (+17c),,
 6,2026-07-30 07:41,KXRAINDENM,KXRAINDENM-26JUL,,1.0,yes,73,1,,73,0.98,0.02,AUTO Tier3 model 90% vs 73c (+17c),,
+7,2026-07-30 13:17,KXRAINSTPM,KXRAINSTPM-26JUL,,8.0,yes,68,1,,68,7.54,0.46,AUTO Tier3 model 79% vs 68c (+11c),,
