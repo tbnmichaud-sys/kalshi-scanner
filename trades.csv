@@ -14,3 +14,4 @@ id,ts_local,series,event,station,threshold,side,price_paid_c,count,entry_bid,ent
 13,2026-08-01 20:02,KXRAINCHIM,KXRAINCHIM-26AUG,,7.0,yes,29,1,,29,6.19,0.81,AUTO Tier3 model 100% vs 29c (+71c),,
 14,2026-08-03 22:37,KXRAINMIAM,KXRAINMIAM-26AUG,,10.0,yes,23,1,,23,2.97,7.03,"AUTO Tier4 SURPRISE-LAG +0.17in vs forecast, was 23c",,
 15,2026-08-03 22:37,KXRAINNYCM,KXRAINNYCM-26AUG,,4.0,yes,91,1,,91,3.87,0.13,AUTO Tier3 model 100% vs 91c (+9c),,
+16,2026-08-05 22:20,KXRAINCHIM,KXRAINCHIM-26AUG,,4.0,yes,85,1,,85,1.70,2.30,"AUTO Tier4 SURPRISE-LAG +0.13in vs forecast, was 85c",,
